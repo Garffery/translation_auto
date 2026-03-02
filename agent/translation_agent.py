@@ -57,7 +57,7 @@ async def should_use_tool(state: TranslationState):
     if hasattr(message, 'tool_calls') and message.tool_calls:
         return "call_model"
     else:
-        END
+        return END
 
 
 workflow = StateGraph(TranslationState)
