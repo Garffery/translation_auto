@@ -4,21 +4,24 @@ from langgraph.graph import StateGraph
 
 from agent.prompts import PROMPT as TranslationAgentPrompt
 from agent.state import TranslationState
+from agent.tools import milvus_hy_search
 
 
 async def get_translation_tools():
-    return []
+    return [milvus_hy_search]
 
 
 
 async def call_model(state:TranslationState):
     print(state)
     tools = await get_translation_tools()
+    print(tools)
     llm = ChatDeepSeek(model="deepseek-chat").bind_tools(tools)
     chain = TranslationAgentPrompt | llm
     message = state["messages"][-1]
     print(f"消息：{message}")
     response = await chain.ainvoke({"request":message.content, "chat_history":[]})
+    print(response)
     return {"messages": response}
 
 
@@ -30,9 +33,11 @@ async def tool_node(state: TranslationState):
     response = []
     for tool_call in message.tool_calls:
         tool_name = tool_call["name"]
+        print(f"工具名称:{tool_name}")
         if tool_name in tool_map:
             selected_tool = tool_map[tool_name]
             try:
+                print(f"工具参数：{tool_call["args"]}")
                 observation = await selected_tool.ainvoke(tool_call["args"])
             except Exception as e:
                 observation = f"Error executing tool {tool_name}: {str(e)}"

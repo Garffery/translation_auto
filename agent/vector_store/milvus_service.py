@@ -1,10 +1,17 @@
+import asyncio
+from typing import List
+
 from pymilvus import MilvusClient, AnnSearchRequest, RRFRanker
 from langchain_ollama import OllamaEmbeddings
 
+from config.setting import settings
+
+
 class MilvusService:
-    def __init__(self, uri:str, db_name:str, collection_name:str, embedding: OllamaEmbeddings):
+    def __init__(self, uri:str, db_name:str, collection_name:str):
         self.collection_name = collection_name
-        self.embedding = embedding
+        params = {"model": settings.OLLAMA_EMBEDDING_MODEL, "base_url": settings.OLLAMA_EMBEDDING_BASE_URL}
+        self.embedding = OllamaEmbeddings(**params)
         self.client = MilvusClient(uri=uri, db_name=db_name)
 
 
@@ -18,7 +25,7 @@ class MilvusService:
         pass
 
 
-    async def hy_query(self, collection_name:str, query_str:str):
+    async def hy_query(self, collection_name:str, query_str:str)-> List[dict]:
         """
         混合检索
         :param collection_name:
@@ -54,4 +61,18 @@ class MilvusService:
             output_fields=["text", "source"]
         )
 
-        pass
+        return hybrid_search_res[0]
+
+print(settings.MILVUS_DATABASE_NAME)
+milvus_service = MilvusService(settings.MILVUS_CONNECTION_URL,
+                               settings.MILVUS_DATABASE_NAME,
+                               settings.MILVUS_COLLECTION_NAME)
+
+
+if __name__ == '__main__':
+    async def main():
+        res = await milvus_service.hy_query(collection_name="collection_hy_1", query_str="血量")
+        print(f"混合检索结果：{res}")
+
+
+    asyncio.run(main())
