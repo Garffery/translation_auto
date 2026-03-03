@@ -23,6 +23,7 @@ async def call_model(state:TranslationState):
 
 
 async def tool_node(state: TranslationState):
+    print(f"进入工具节点-------------》")
     message = state["messages"][-1]
     tools = await get_translation_tools()
     tool_map = {t.name: t for t in tools}
@@ -53,11 +54,14 @@ async def tool_node(state: TranslationState):
 
 
 async def should_use_tool(state: TranslationState):
+    print(f"-----------判断是否执行工具界面------------")
     message = state["messages"][-1]
     if hasattr(message, 'tool_calls') and message.tool_calls:
-        return "call_model"
+        print("确定进入工具界面")
+        return "tool_node"
     else:
-        END
+        print("结束流程")
+        return END
 
 
 workflow = StateGraph(TranslationState)

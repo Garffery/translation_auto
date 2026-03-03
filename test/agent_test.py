@@ -15,7 +15,7 @@ if __name__ == '__main__':
         thread_config = {"configurable": {"thread_id": "1"}}
 
         print("Starting interaction...")
-        async for event in app.astream(inputs, config=thread_config):
+        async for event in app.astream(inputs, config=thread_config, stream_mode="messages"):
             print(f"Event: {event}")
 
 
