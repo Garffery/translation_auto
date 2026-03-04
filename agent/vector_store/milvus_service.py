@@ -50,7 +50,7 @@ class MilvusService:
         reqs = [request_dense, request_bm25]
 
         # Initialize the RRF ranking algorithm
-        ranker = RRFRanker()
+        ranker = RRFRanker(200)
 
         # Perform the hybrid search
         hybrid_search_res = self.client.hybrid_search(

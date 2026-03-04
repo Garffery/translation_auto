@@ -21,3 +21,13 @@ EXTRACTION_PROMPT = ChatPromptTemplate.from_messages([
     """),
     ("user", "用户文本:{request}")
 ])
+
+
+REWRITE_PROMPT = ChatPromptTemplate.from_messages([
+    MessagesPlaceholder("chat_history"),
+    ("system", """你是一名小助手,请根据上下文历史将用户的输入修改为便于理解的文本。需要遵循下面的要求:
+    1.**Disambiguate**:结合上下文,消除模糊代词（如“它”→“iPhone 15”，需结合上下文补全）。
+    2.如果不明确,请依据上下文补全
+    """),
+    ("user", "用户文本:{request}")
+])
