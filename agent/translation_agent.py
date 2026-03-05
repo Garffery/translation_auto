@@ -17,16 +17,14 @@ async def term_extraction(state:TranslationState):
     chain = EXTRACTION_PROMPT | llm
     message = state["origin_query"]
     response = await chain.ainvoke({"request":message})
-    print(f"提取到的术语:{response}")
-    return {"term": response}
+    print(f"提取到的术语:{response.term_list}")
+    return {"term": response.term_list}
 
 
 
 
 async def call_model(state:TranslationState):
-    print(state)
     tools = await get_translation_tools()
-    print(tools)
     llm = ChatDeepSeek(model="deepseek-chat").bind_tools(tools)
     chain = TranslationAgentPrompt | llm
     message = state["origin_query"]

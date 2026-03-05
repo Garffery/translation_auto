@@ -11,7 +11,7 @@ if __name__ == '__main__':
     load_dotenv()
     app = workflow.compile(checkpointer=MemorySaver())
     async def main():
-        inputs = {"origin_query": "一阶龙元"}
+        inputs = {"origin_query": ""}
         thread_config = {"configurable": {"thread_id": "1"}}
         print("Starting interaction...")
         async for event in app.astream(inputs, config=thread_config, stream_mode="values"):
