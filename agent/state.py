@@ -10,6 +10,7 @@ class TranslationState(TypedDict):
     origin_query: Annotated[str, "用户原始输入"]
     term: Annotated[list[str], "术语"]
     messages: Annotated[list[AnyMessage], add_messages]
+    final_result: Annotated[AnyMessage,"最终结果"]
 
 
 class Term(BaseModel):

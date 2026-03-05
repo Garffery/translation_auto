@@ -11,25 +11,23 @@ if __name__ == '__main__':
     load_dotenv()
     # app = workflow.compile(checkpointer=MemorySaver())
     app = workflow.compile()
-    async def translate(input):
+    async def translate(input_str):
         thread_config = {"configurable": {"thread_id": "1"}}
         res = None
+        input = {"origin_query": input_str}
         async for event in app.astream(input, config=thread_config, stream_mode="values"):
             if "final_result" in event:
                 res = event["final_result"].content
         return res
     async def main():
-        inputs = {"origin_query": "帮我把这句话翻译为英文  恭喜你获得了异界生命核，太幸运了吧"}
-        res = await translate(inputs)
-        print(res)
+        data = ["帮我把这句话翻译为英文  恭喜你获得了异界生命核，太幸运了吧", "帮我把这句话翻译为英文  恭喜你获得了异界生命核，太幸运了吧"]
+        res_list = []
+        for each in data:
+            res = await translate(each)
+            res_list.append(res)
 
 
-        # # inputs = {"origin_query": "帮我把上面这句话翻译成繁体"}
-        # inputs = {"origin_query": "这句话的繁体是怎么样的"}
-        # thread_config = {"configurable": {"thread_id": "1"}}
-        # print("Starting interaction...")
-        # async for event in app.astream(inputs, config=thread_config, stream_mode="values"):
-        #     print(f"Event: {event}")
+        print(res_list)
 
 
     asyncio.run(main())

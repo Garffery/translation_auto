@@ -29,5 +29,3 @@ class Settings(BaseSettings):
 # 创建一个全局的配置实例
 settings = Settings()
 current_working_directory = os.getcwd()
-print("当前工作目录:", current_working_directory)
-print(settings.model_dump())
