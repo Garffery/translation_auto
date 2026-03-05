@@ -1,8 +1,10 @@
+from langchain_core.messages import RemoveMessage, AIMessage, HumanMessage
 from langchain_deepseek import ChatDeepSeek
 from langgraph.constants import END, START
 from langgraph.graph import StateGraph
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
-from agent.prompts import PROMPT as TranslationAgentPrompt, EXTRACTION_PROMPT
+from agent.prompts import PROMPT as TranslationAgentPrompt, EXTRACTION_PROMPT, REWRITE_PROMPT
 from agent.state import TranslationState, Term
 from agent.tools import milvus_hy_search
 
@@ -10,6 +12,14 @@ from agent.tools import milvus_hy_search
 async def get_translation_tools():
     return [milvus_hy_search]
 
+async def query_rewrite_node(state:TranslationState):
+    print(f"改写节点======messages:{state["messages"]}")
+    llm = ChatDeepSeek(model="deepseek-chat")
+    chain = REWRITE_PROMPT | llm
+    message = state["origin_query"]
+    response = await chain.ainvoke({"request": message, "chat_history":state["messages"]})
+    print(f"改写结果：{response}")
+    return {"origin_query": response}
 
 
 async def term_extraction(state:TranslationState):
@@ -17,14 +27,21 @@ async def term_extraction(state:TranslationState):
     chain = EXTRACTION_PROMPT | llm
     message = state["origin_query"]
     response = await chain.ainvoke({"request":message})
-    print(f"提取到的术语:{response.term_list}")
+    print(f"提取到的术语:{response}")
     return {"term": response.term_list}
 
-
+async def summary_node(state: TranslationState):
+    print("=============总结节点===================")
+    messages = state["messages"]
+    origin = state["origin_query"]
+    res = messages[-1].content
+    return {"messages":[RemoveMessage(id=REMOVE_ALL_MESSAGES), HumanMessage(content=origin.content), AIMessage(content=res)]}
 
 
 async def call_model(state:TranslationState):
+    print(state)
     tools = await get_translation_tools()
+    print(tools)
     llm = ChatDeepSeek(model="deepseek-chat").bind_tools(tools)
     chain = TranslationAgentPrompt | llm
     message = state["origin_query"]
@@ -78,7 +95,7 @@ async def should_use_tool(state: TranslationState):
         return "tool_node"
     else:
         print("结束流程")
-        return END
+        return "summary_node"
 
 
 workflow = StateGraph(TranslationState)
@@ -86,10 +103,14 @@ workflow = StateGraph(TranslationState)
 workflow.add_node("call_model", call_model)
 workflow.add_node("tool_node", tool_node)
 workflow.add_node("term_extraction_node", term_extraction)
+workflow.add_node("query_rewrite_node", query_rewrite_node)
+workflow.add_node("summary_node", summary_node)
 
-workflow.add_edge(START, "term_extraction_node")
+workflow.add_edge(START, "query_rewrite_node")
+workflow.add_edge("query_rewrite_node", "term_extraction_node")
 workflow.add_edge("term_extraction_node", "call_model")
-workflow.add_conditional_edges("call_model", should_use_tool, [END, "tool_node"])
+workflow.add_conditional_edges("call_model", should_use_tool, ["summary_node", "tool_node"])
 workflow.add_edge("tool_node", "call_model")
+workflow.add_edge("summary_node", END)
 
 
