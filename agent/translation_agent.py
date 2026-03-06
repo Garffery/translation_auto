@@ -13,12 +13,10 @@ async def get_translation_tools():
     return [milvus_hy_search]
 
 async def query_rewrite_node(state:TranslationState):
-    print(f"改写节点======messages:{state["messages"]}")
     llm = ChatDeepSeek(model="deepseek-chat")
     chain = REWRITE_PROMPT | llm
     message = state["origin_query"]
     response = await chain.ainvoke({"request": message, "chat_history":state["messages"]})
-    print(f"改写结果：{response}")
     return {"origin_query": response}
 
 
@@ -27,7 +25,6 @@ async def term_extraction(state:TranslationState):
     chain = EXTRACTION_PROMPT | llm
     message = state["origin_query"]
     response = await chain.ainvoke({"request":message})
-    print(f"提取到的术语:{response}")
     return {"term": response.term_list}
 
 async def summary_node(state: TranslationState):
@@ -39,34 +36,26 @@ async def summary_node(state: TranslationState):
 
 
 async def call_model(state:TranslationState):
-    print(state)
     tools = await get_translation_tools()
-    print(tools)
     llm = ChatDeepSeek(model="deepseek-chat").bind_tools(tools)
     chain = TranslationAgentPrompt | llm
     message = state["origin_query"]
-    print(f"消息：{message}")
     term_list = state["term"]
-    print(f"术语列表:{term_list}")
     term_str = ",".join(term_list)
     response = await chain.ainvoke({"request":message, "chat_history":state["messages"], "term":term_str})
-    print(response)
     return {"messages": response}
 
 
 async def tool_node(state: TranslationState):
-    print(f"进入工具节点-------------》")
     message = state["messages"][-1]
     tools = await get_translation_tools()
     tool_map = {t.name: t for t in tools}
     response = []
     for tool_call in message.tool_calls:
         tool_name = tool_call["name"]
-        print(f"工具名称:{tool_name}")
         if tool_name in tool_map:
             selected_tool = tool_map[tool_name]
             try:
-                print(f"工具参数：{tool_call["args"]}")
                 observation = await selected_tool.ainvoke(tool_call["args"])
             except Exception as e:
                 observation = f"Error executing tool {tool_name}: {str(e)}"
@@ -88,13 +77,10 @@ async def tool_node(state: TranslationState):
 
 
 async def should_use_tool(state: TranslationState):
-    print(f"-----------判断是否执行工具界面------------")
     message = state["messages"][-1]
     if hasattr(message, 'tool_calls') and message.tool_calls:
-        print("确定进入工具界面")
         return "tool_node"
     else:
-        print("结束流程")
         return "summary_node"
 
 

@@ -4,7 +4,7 @@ from agent.vector_store.milvus_service import milvus_service
 
 if __name__ == '__main__':
     async def main():
-        res = await milvus_service.hy_query(collection_name="collection_hy_1", query_str="命中率")
+        res = await milvus_service.hy_query(collection_name="collection_hy_1", query_str="血量")
         print(res)
         res1 = []
         for item in res:
