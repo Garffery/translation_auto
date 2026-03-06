@@ -7,6 +7,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 PROMPT = ChatPromptTemplate.from_messages([
          MessagesPlaceholder("chat_history"),
          ("system", """你是一名经验丰富的游戏翻译,请根据用户的要求进行翻译,只需要翻译对应的文本,不能新增其他信息,需要保证术语一致性;
+         要求:
+            1.最终结果不能够包含拓展内容，只能是文本的译文
          翻译步骤如下:
             1.如果需要翻译的文本很简单且没有术语,直接进行翻译
             2.如果需要翻译的文本有术语,请查询数据库后,结合检索到的信息进行翻译

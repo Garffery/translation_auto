@@ -28,11 +28,10 @@ async def term_extraction(state:TranslationState):
     return {"term": response.term_list}
 
 async def summary_node(state: TranslationState):
-    print("=============总结节点===================")
     messages = state["messages"]
     origin = state["origin_query"]
     res = messages[-1].content
-    return {"messages":[RemoveMessage(id=REMOVE_ALL_MESSAGES), HumanMessage(content=origin.content), AIMessage(content=res)]}
+    return {"messages":[RemoveMessage(id=REMOVE_ALL_MESSAGES), HumanMessage(content=origin.content), AIMessage(content=res)], "final_result":AIMessage(content=res)}
 
 
 async def call_model(state:TranslationState):
