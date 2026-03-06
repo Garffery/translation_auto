@@ -19,7 +19,7 @@ if __name__ == '__main__':
                 res = event["final_result"].content
         return res
     async def main():
-        inputs = {"origin_query": "帮我把这句话翻译为英文  恭喜你获得了异界生命核，太幸运了吧"}
+        inputs = {"origin_query": "帮我把这句话翻译为韩语  21点50分"}
         res = await translate(inputs)
         print(res)
 

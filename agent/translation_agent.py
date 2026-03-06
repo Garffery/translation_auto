@@ -17,6 +17,7 @@ async def query_rewrite_node(state:TranslationState):
     chain = REWRITE_PROMPT | llm
     message = state["origin_query"]
     response = await chain.ainvoke({"request": message, "chat_history":state["messages"]})
+    print(f"改写结果:{response}")
     return {"origin_query": response}
 
 
